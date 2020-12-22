@@ -1,7 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const authConfig = require('../config/auth.json');
 
 const router = express.Router();
 
@@ -39,8 +40,14 @@ router.post('/autenticar', async (req, res) => {
 
   // com isso não retorna a senha como resposta do POST
   user.senha = undefined;
+
+  // gerar token JWT sign (3 params: id unico + hash secreto + tempo expiração)
+  const token = jwt.sign({ id: user.id }, authConfig.segredo, {
+    expiresIn: 86400,
+  });
   // se logou:
-  res.send({ user });
+
+  res.send({ user, token });
 });
 
 // esse (app) vem 'injetado' de '/src/index.js':
