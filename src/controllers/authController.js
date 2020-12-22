@@ -6,6 +6,13 @@ const authConfig = require('../config/auth.json');
 
 const router = express.Router();
 
+// gerar token JWT sign (3 params: id unico + hash secreto + tempo expiração)
+function geraToken(params = {}) {
+  return jwt.sign(params, authConfig.secret, {
+    expiresIn: 86400,
+  });
+}
+
 router.post('/registrar', async (req, res) => {
   //pega email dos params para verificar:
   const { email } = req.body;
@@ -22,7 +29,8 @@ router.post('/registrar', async (req, res) => {
     // com isso não retorna a senha como resposta do POST
     user.senha = undefined;
 
-    return res.send({ user });
+    // aqui quando cria o usuário ja repassa o token pra ele logar automaticamente:
+    return res.send({ user, token: geraToken({ id: user.id }) });
   } catch (err) {
     return res.status(400).send({ error: 'Registro Falhou!' });
   }
@@ -41,13 +49,11 @@ router.post('/autenticar', async (req, res) => {
   // com isso não retorna a senha como resposta do POST
   user.senha = undefined;
 
-  // gerar token JWT sign (3 params: id unico + hash secreto + tempo expiração)
-  const token = jwt.sign({ id: user.id }, authConfig.segredo, {
-    expiresIn: 86400,
-  });
-  // se logou:
+  // depois que registra geralmente tem confirmação por email depois tem que logar denovo, aqui não..
+  // estamos passando para uma função geraToken:
 
-  res.send({ user, token });
+  // se logou:
+  res.send({ user, token: geraToken({ id: user.id }) });
 });
 
 // esse (app) vem 'injetado' de '/src/index.js':
