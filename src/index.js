@@ -8,7 +8,5 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // estou requisitando o arquivo auth e repassando para ele o (app)
 // pq 'app' é um objeto definido uma vez e utilizado em toda aplicacao.
-require('./controllers/authController.js')(app);
-require('./controllers/projectController.js')(app);
-
+require('./app/controllers/index')(app);
 app.listen(3000);

@@ -2,7 +2,9 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const authConfig = require('../config/auth.json');
+const authConfig = require('../../config/auth.json');
+const crypto = require('crypto');
+const mailer = require('../../modules/mailer');
 
 const router = express.Router();
 
@@ -54,6 +56,53 @@ router.post('/autenticar', async (req, res) => {
 
   // se logou:
   res.send({ user, token: geraToken({ id: user.id }) });
+});
+
+router.post('/esqueceu_senha', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).send({ error: 'Usuário não encontrado' });
+    // gerar token, pq não é qq pessoa que pode acessar lá e resetar a senha: só esse user por certo tempo:
+    const token = crypto.randomBytes(20).toString('hex');
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+
+    // aqui ta inserindo na tabela users: o token e a data de expiração:
+    await User.findByIdAndUpdate(user.id, {
+      // set = quais campos queremos setar:
+      $set: {
+        //tipo String
+        senhaResetToken: token,
+        //tipo Data
+        senhaResetExpiracao: now,
+      },
+    });
+
+    mailer.sendMail(
+      {
+        to: email,
+        from: 'feze@fe.com',
+        template: 'auth/esqueceu_senha',
+        // no context passamos as variaveis que temos no template:
+        // a data de expiração não precisa passar pq vamos verificar lá na hora de passar a senha mesmo
+        context: { token },
+      },
+      err => {
+        if (err) console.log(err);
+        return res
+          .status(400)
+          .send({ error: 'Não pudemos enviar o email com a senha' });
+        // se não der erro: retorna o 200 ok.. pq naõ tem outra resposta agora, mas pode por msg:
+        return res.send();
+      }
+    );
+  } catch (err) {
+    console.log(err);
+    res
+      .status(400)
+      .send({ error: 'Erro na recuperação da senha, tente denovo' });
+  }
 });
 
 // esse (app) vem 'injetado' de '/src/index.js':
