@@ -71,7 +71,7 @@ router.post('/esqueceu_senha', async (req, res) => {
     // aqui ta inserindo na tabela users: o token e a data de expiração:
     await User.findByIdAndUpdate(user.id, {
       // set = quais campos queremos setar:
-      $set: {
+      '$set': {
         //tipo String
         senhaResetToken: token,
         //tipo Data
