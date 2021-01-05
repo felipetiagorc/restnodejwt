@@ -10,3 +10,4 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // pq 'app' é um objeto definido uma vez e utilizado em toda aplicacao.
 require('./app/controllers/index')(app);
 app.listen(3000);
+console.log("Rodando na porta 3000")

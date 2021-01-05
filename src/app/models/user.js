@@ -21,7 +21,6 @@ const UserSchema = new mongoose.Schema({
   },
   senhaResetToken: {
     type: String,
-    
     select: false,
   },
   senhaResetExpiracao: {
