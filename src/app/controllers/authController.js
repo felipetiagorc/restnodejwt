@@ -15,6 +15,9 @@ function geraToken(params = {}) {
   });
 }
 
+
+
+
 router.post('/registrar', async (req, res) => {
   //pega email dos params para verificar:
   const { email } = req.body;
@@ -38,6 +41,10 @@ router.post('/registrar', async (req, res) => {
   }
 });
 
+
+
+
+
 router.post('/autenticar', async (req, res) => {
   const { email, senha } = req.body;
   // precisamos da senha do banco aqui para comparar com a digitada:
@@ -58,9 +65,14 @@ router.post('/autenticar', async (req, res) => {
   res.send({ user, token: geraToken({ id: user.id }) });
 });
 
+
+
+
+
 router.post('/esqueceu_senha', async (req, res) => {
   const { email } = req.body;
   try {
+    // tenta procurar na base um user com esse email passado:
     const user = await User.findOne({ email });
     if (!user) return res.status(400).send({ error: 'Usuário não encontrado' });
     // gerar token, pq não é qq pessoa que pode acessar lá e resetar a senha: só esse user por certo tempo:
@@ -71,30 +83,32 @@ router.post('/esqueceu_senha', async (req, res) => {
     // aqui ta inserindo na tabela users: o token e a data de expiração:
     await User.findByIdAndUpdate(user.id, {
       // set = quais campos queremos setar:
-      $set: {
+      '$set': {
         //tipo String
         senhaResetToken: token,
         //tipo Data
         senhaResetExpiracao: now,
       },
     });
+    // console.log(token, now)
 
     mailer.sendMail(
       {
         to: email,
-        from: 'feze@fe.com',
-        template: 'auth/esqueceu_senha',
+        from: 'fe21@fe21.com',
+        template: '/auth/esqueceu_senha',
         // no context passamos as variaveis que temos no template:
         // a data de expiração não precisa passar pq vamos verificar lá na hora de passar a senha mesmo
         context: { token },
       },
       err => {
-        if (err) console.log(err);
+        if (err) 
+        console.log(err);
         return res
           .status(400)
           .send({ error: 'Não pudemos enviar o email com a senha' });
         // se não der erro: retorna o 200 ok.. pq naõ tem outra resposta agora, mas pode por msg:
-        return res.send();
+        // return res.send();
       }
     );
   } catch (err) {

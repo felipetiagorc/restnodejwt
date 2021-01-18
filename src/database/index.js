@@ -10,6 +10,7 @@ mongoose.connect(uri, {
   useFindAndModify: false,
 });
 
+// isso é padrão para todo projeto:
 mongoose.Promise = global.Promise;
 
 module.exports = mongoose;
