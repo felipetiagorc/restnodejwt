@@ -15,9 +15,6 @@ function geraToken(params = {}) {
   });
 }
 
-
-
-
 router.post('/registrar', async (req, res) => {
   //pega email dos params para verificar:
   const { email } = req.body;
@@ -41,10 +38,6 @@ router.post('/registrar', async (req, res) => {
   }
 });
 
-
-
-
-
 router.post('/autenticar', async (req, res) => {
   const { email, senha } = req.body;
   // precisamos da senha do banco aqui para comparar com a digitada:
@@ -65,10 +58,6 @@ router.post('/autenticar', async (req, res) => {
   res.send({ user, token: geraToken({ id: user.id }) });
 });
 
-
-
-
-
 router.post('/esqueceu_senha', async (req, res) => {
   const { email } = req.body;
   try {
@@ -83,7 +72,7 @@ router.post('/esqueceu_senha', async (req, res) => {
     // aqui ta inserindo na tabela users: o token e a data de expiração:
     await User.findByIdAndUpdate(user.id, {
       // set = quais campos queremos setar:
-      '$set': {
+      $set: {
         //tipo String
         senhaResetToken: token,
         //tipo Data
@@ -102,8 +91,7 @@ router.post('/esqueceu_senha', async (req, res) => {
         context: { token },
       },
       err => {
-        if (err) 
-        console.log(err);
+        if (err) console.log(err);
         return res
           .status(400)
           .send({ error: 'Não pudemos enviar o email com a senha' });
