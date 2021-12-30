@@ -5,10 +5,10 @@ const User = require('../models/User');
 const authConfig = require('../../config/auth.json');
 const crypto = require('crypto');
 const mailer = require('../../modules/mailer');
+const res = require('express/lib/response');
 
 const router = express.Router();
 
-// gerar token JWT sign (3 params: id unico + hash secreto + tempo expiração)
 function geraToken(params = {}) {
   return jwt.sign(params, authConfig.secret, {
     expiresIn: 86400,
@@ -16,19 +16,14 @@ function geraToken(params = {}) {
 }
 
 router.post('/registrar', async (req, res) => {
-  //pega email dos params para verificar:
   const { email } = req.body;
 
   try {
-    // verificar se já tem o mesmo email:
     if (await User.findOne({ email }))
       return res.status(400).send({ error: 'Usuário já está cadastrado!' });
 
-    // cria um usário com os dados de req.body
     const user = await User.create(req.body);
 
-    // apoaga a senha assim que user for criado:
-    // com isso não retorna a senha como resposta do POST
     user.senha = undefined;
 
     // aqui quando cria o usuário ja repassa o token pra ele logar automaticamente:
@@ -79,31 +74,60 @@ router.post('/esqueceu_senha', async (req, res) => {
         senhaResetExpiracao: now,
       },
     });
-    // console.log(token, now)
+
+    // console.log(token, now);
 
     mailer.sendMail(
       {
         to: email,
-        from: 'fe21@fe21.com',
+        from: 'nodeRest@fe.com',
         template: '/auth/esqueceu_senha',
         // no context passamos as variaveis que temos no template:
         // a data de expiração não precisa passar pq vamos verificar lá na hora de passar a senha mesmo
         context: { token },
       },
       err => {
-        if (err) console.log(err);
-        return res
-          .status(400)
-          .send({ error: 'Não pudemos enviar o email com a senha' });
+        if (err)
+          return res
+            .status(400)
+            .send({ error: 'Não pudemos enviar o email com a senha' });
         // se não der erro: retorna o 200 ok.. pq naõ tem outra resposta agora, mas pode por msg:
-        // return res.send();
+        return res.send();
       }
     );
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     res
       .status(400)
       .send({ error: 'Erro na recuperação da senha, tente denovo' });
+  }
+});
+
+router.post('/reset_senha', async (req, res) => {
+  const { email, token, password } = req.body;
+  try {
+    // select esquisito do mongoose além de buscar por email:
+    const user = await User.findOne({ email }).select(
+      '+senhaResetToken senhaResetExpiracao'
+    );
+
+    if (!user) return res.status(400).send({ error: 'Usuário não encontrado' });
+    //se o token passado não for igual ao q tá no banco:
+    if (token !== user.senhaResetToken)
+      return res.status(400).send({ error: 'Token invalido!' });
+
+    const agora = new Date();
+    if (agora > user.senhaResetExpiracao)
+      return res.status(400).send({ error: 'Token expirado, solicite outro!' });
+
+    // atualiza a senha do user (no model já gera o hash)
+
+    user.senha = password;
+
+    await user.save();
+    res.send();
+  } catch (err) {
+    res.status(400).send({ error: 'Não resetou a senha, tente denovo' });
   }
 });
 
