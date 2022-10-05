@@ -4,10 +4,11 @@ const hbs = require('nodemailer-express-handlebars');
 
 const { host, port, user, pass } = require('../config/mail.json');
 
-const transport = nodemailer.createTransport({
+let transport = nodemailer.createTransport({
   host,
   port,
-  auth: { user, pass },
+  secure: false,
+  auth: { user, pass }
 });
 
 // // config do handlebars, usando o transport do nodemailer:
@@ -29,10 +30,10 @@ const handlebarOptions = {
     extName: '.html',
     partialsDir: path.resolve('./src/resources/mail/auth'),
     layoutsDir: path.resolve('./src/resources/mail/auth'),
-    defaultLayout: 'esqueceu_senha.html',
+    defaultLayout: 'esqueceu_senha.html'
   },
   viewPath: path.resolve('./src/resources/mail/'),
-  extName: '.html',
+  extName: '.html'
 };
 
 transport.use('compile', hbs(handlebarOptions));

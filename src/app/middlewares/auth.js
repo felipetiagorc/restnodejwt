@@ -5,7 +5,8 @@ const authConfig = require('../../config/auth.json');
 module.exports = (req, res, next) => {
   const authHeader = req.headers.autorizacao;
 
-  if (!authHeader) return res.status(401).send({ error: 'Falta o token' });
+  if (!authHeader) 
+     return res.status(401).send({ error: 'Falta o token' });
 
   const parts = authHeader.split(' ');
   if (!parts.length === 2)
