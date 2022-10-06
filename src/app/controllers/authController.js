@@ -85,6 +85,7 @@ router.post('/esqueceu_senha', async (req, res) => {
       {
         to: email,
         from: 'fe21@fe21.com',
+        subject: 'Recuperação de Senha',
         template: '/auth/esqueceu_senha',
         // no context passamos as variaveis que temos no template:
         // a data de expiração não precisa passar pq vamos verificar lá na hora de passar a senha mesmo

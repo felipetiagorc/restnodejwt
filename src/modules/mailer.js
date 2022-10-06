@@ -8,9 +8,19 @@ let transport = nodemailer.createTransport({
   host,
   port,
   secure: false,
-  auth: { user, pass }
+  auth: { user, pass },
+  logger: true,
+  debug: true,
+  tls: { rejectUnauthorized: false }
 });
 
+transport.verify(function (error, success) {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log('Server ready to take our message');
+  }
+});
 // // config do handlebars, usando o transport do nodemailer:
 // transport.use(
 //   'compile',
